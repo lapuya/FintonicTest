@@ -13,6 +13,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class RadarServiceTest {
 
+    private final static CoordinatesDto DEFAULT_COORDINATES = new CoordinatesDto(0, 0);
+
     @InjectMocks
     RadarService radarService;
 
@@ -220,5 +222,25 @@ public class RadarServiceTest {
 
         var coordinatesDto = radarService.processRequest(requestDto);
         assertEquals(scanDto2.coordinates(), coordinatesDto);
+    }
+
+    @Test
+    void when_enemy_distance_are_above_100_return_default_coordinate() {
+        List<String> protocols = new ArrayList<>();
+        List<ScanDto> scan = new ArrayList<>();
+        EnemiesDto enemiesSoldierDto = new EnemiesDto(EnemiesType.SOLDIER, 10);
+        EnemiesDto enemiesMechDto = new EnemiesDto(EnemiesType.MECH, 10);
+
+        ScanDto scanDto1 = new ScanDto(new CoordinatesDto(1000, 1000), enemiesSoldierDto, null);
+        ScanDto scanDto2 = new ScanDto(new CoordinatesDto(2000, 2000), enemiesMechDto, null);
+
+        protocols.add("closest-enemies");
+        scan.add(scanDto1);
+        scan.add(scanDto2);
+
+        RequestDto requestDto = new RequestDto(protocols, scan);
+
+        var coordinatesDto = radarService.processRequest(requestDto);
+        assertEquals(DEFAULT_COORDINATES, coordinatesDto);
     }
 }

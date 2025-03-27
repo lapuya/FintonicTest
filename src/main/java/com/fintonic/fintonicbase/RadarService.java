@@ -28,10 +28,20 @@ public class RadarService {
 
         // entiendo que no puede haber mech y allies a la vez, porque entonces no se socorrería a los aliados
         if (requestDto.protocols().contains("avoid-mech")) {
-            return DEFAULT_COORDINATES;
+            listOfScan.removeIf(p -> EnemiesType.MECH.equals(p.enemies().type()));
         }
 
+        listOfScan.removeIf(p -> distance(p.coordinates()) > 100);
+
+        checkEmpty(listOfScan);
+
         return listOfScan.get(0).coordinates();
+    }
+
+    private void checkEmpty(List<ScanDto> listOfScan) {
+        if (listOfScan.isEmpty()) {
+            listOfScan.add(new ScanDto(DEFAULT_COORDINATES, null, null));
+        }
     }
 
     private static int distance(CoordinatesDto coordinates) {
