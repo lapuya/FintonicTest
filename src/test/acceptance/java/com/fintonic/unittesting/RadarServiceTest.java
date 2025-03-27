@@ -180,4 +180,45 @@ public class RadarServiceTest {
         var coordinatesDto = radarService.processRequest(requestDto);
         assertEquals(scanDto2.coordinates(), coordinatesDto);
     }
+
+    @Test
+    void given_a_mix_of_enemies_and_protocol_closest_enemy_and_avoid_mech_return_not_mech_closest_enemy() {
+        List<String> protocols = new ArrayList<>();
+        List<ScanDto> scan = new ArrayList<>();
+        EnemiesDto enemiesSoldierDto = new EnemiesDto(EnemiesType.SOLDIER, 10);
+        EnemiesDto enemiesMechDto = new EnemiesDto(EnemiesType.MECH, 10);
+
+        ScanDto scanDto1 = new ScanDto(new CoordinatesDto(41, 3), enemiesSoldierDto, null);
+        ScanDto scanDto2 = new ScanDto(new CoordinatesDto(1, 1), enemiesMechDto, null);
+
+        protocols.add("closest-enemies");
+        protocols.add("avoid-mech");
+        scan.add(scanDto1);
+        scan.add(scanDto2);
+
+        RequestDto requestDto = new RequestDto(protocols, scan);
+
+        var coordinatesDto = radarService.processRequest(requestDto);
+        assertEquals(scanDto1.coordinates(), coordinatesDto);
+    }
+
+    @Test
+    void given_a_mix_of_enemies_and_protocol_closest_enemy_and_no_avoid_mech_return_closest_mech_enemy() {
+        List<String> protocols = new ArrayList<>();
+        List<ScanDto> scan = new ArrayList<>();
+        EnemiesDto enemiesSoldierDto = new EnemiesDto(EnemiesType.SOLDIER, 10);
+        EnemiesDto enemiesMechDto = new EnemiesDto(EnemiesType.MECH, 10);
+
+        ScanDto scanDto1 = new ScanDto(new CoordinatesDto(41, 3), enemiesSoldierDto, null);
+        ScanDto scanDto2 = new ScanDto(new CoordinatesDto(1, 1), enemiesMechDto, null);
+
+        protocols.add("closest-enemies");
+        scan.add(scanDto1);
+        scan.add(scanDto2);
+
+        RequestDto requestDto = new RequestDto(protocols, scan);
+
+        var coordinatesDto = radarService.processRequest(requestDto);
+        assertEquals(scanDto2.coordinates(), coordinatesDto);
+    }
 }

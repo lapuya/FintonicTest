@@ -8,6 +8,8 @@ import java.util.Objects;
 
 @Service
 public class RadarService {
+
+    private final static CoordinatesDto DEFAULT_COORDINATES = new CoordinatesDto(0, 0);
     public CoordinatesDto processRequest(RequestDto requestDto) {
         List<ScanDto> listOfScan = requestDto.scan();
 
@@ -22,6 +24,11 @@ public class RadarService {
         if (requestDto.protocols().contains("assist-allies")) {
             //can be null or number, if provided, can be 0
             listOfScan.removeIf(p -> Objects.isNull(p.allies()) || p.allies().number() == 0);
+        }
+
+        // entiendo que no puede haber mech y allies a la vez, porque entonces no se socorrería a los aliados
+        if (requestDto.protocols().contains("avoid-mech")) {
+            return DEFAULT_COORDINATES;
         }
 
         return listOfScan.get(0).coordinates();
