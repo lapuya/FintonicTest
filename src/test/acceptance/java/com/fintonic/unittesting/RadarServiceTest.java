@@ -134,4 +134,50 @@ public class RadarServiceTest {
         var coordinatesDto = radarService.processRequest(requestDto);
         assertEquals(scanDto3.coordinates(), coordinatesDto);
     }
+
+    @Test
+    void given_more_than_one_enemies_and_protocol_closest_enemy_and_assist_allies_return_enemy_with_allies() {
+        List<String> protocols = new ArrayList<>();
+        List<ScanDto> scan = new ArrayList<>();
+        EnemiesDto enemiesDto = new EnemiesDto(EnemiesType.SOLDIER, 10);
+        ScanDto scanDto1 = new ScanDto(new CoordinatesDto(41, 3), enemiesDto, null);
+        ScanDto scanDto2 = new ScanDto(new CoordinatesDto(1, 1), enemiesDto, null);
+        ScanDto scanDto3 = new ScanDto(new CoordinatesDto(30, 40), enemiesDto, new AlliesDto(3));
+        ScanDto scanDto4 = new ScanDto(new CoordinatesDto(30, 0), enemiesDto, null);
+
+        protocols.add("closest-enemies");
+        protocols.add("assist-allies");
+        scan.add(scanDto1);
+        scan.add(scanDto2);
+        scan.add(scanDto3);
+        scan.add(scanDto4);
+
+        RequestDto requestDto = new RequestDto(protocols, scan);
+
+        var coordinatesDto = radarService.processRequest(requestDto);
+        assertEquals(scanDto3.coordinates(), coordinatesDto);
+    }
+
+    @Test
+    void given_more_than_one_enemies_and_protocol_furthest_enemy_and_assist_allies_return_enemy_with_allies() {
+        List<String> protocols = new ArrayList<>();
+        List<ScanDto> scan = new ArrayList<>();
+        EnemiesDto enemiesDto = new EnemiesDto(EnemiesType.SOLDIER, 10);
+        ScanDto scanDto1 = new ScanDto(new CoordinatesDto(41, 3), enemiesDto, null);
+        ScanDto scanDto2 = new ScanDto(new CoordinatesDto(1, 1), enemiesDto, new AlliesDto(3));
+        ScanDto scanDto3 = new ScanDto(new CoordinatesDto(30, 40), enemiesDto, null);
+        ScanDto scanDto4 = new ScanDto(new CoordinatesDto(30, 0), enemiesDto, null);
+
+        protocols.add("furthest-enemies");
+        protocols.add("assist-allies");
+        scan.add(scanDto1);
+        scan.add(scanDto2);
+        scan.add(scanDto3);
+        scan.add(scanDto4);
+
+        RequestDto requestDto = new RequestDto(protocols, scan);
+
+        var coordinatesDto = radarService.processRequest(requestDto);
+        assertEquals(scanDto3.coordinates(), coordinatesDto);
+    }
 }

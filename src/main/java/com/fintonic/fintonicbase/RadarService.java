@@ -8,43 +8,26 @@ import java.util.List;
 
 @Service
 public class RadarService {
+    private final static CoordinatesDto DEFAULT_COORDINATES = new CoordinatesDto(0, 0);
 
     public CoordinatesDto processRequest(RequestDto requestDto) {
-        CoordinatesDto coordinatesDto;
-        //aceptamos solo un protocolo por ahora
-        switch (requestDto.protocols().get(0)) {
-            case "closest-enemies":
-                coordinatesDto = calculateClosestEnemy(requestDto);
-                break;
-            case "furthest-enemies":
-                coordinatesDto = calculateFurthestEnemy(requestDto);
-                break;
-            default:
-                coordinatesDto = new CoordinatesDto(0, 0); //excepción, tiramos 0,0 por ahora
-        }
-        return coordinatesDto;
-    }
-
-    private CoordinatesDto calculateClosestEnemy(RequestDto requestDto) {
-
         List<CoordinatesDto> listOfCoordinates = new ArrayList<>();
 
         for (ScanDto scanDto : requestDto.scan()) {
             listOfCoordinates.add(scanDto.coordinates());
         }
-        listOfCoordinates.sort(Comparator.comparingInt(RadarService::distance));
 
-        return listOfCoordinates.get(0);
-    }
-
-    private CoordinatesDto calculateFurthestEnemy(RequestDto requestDto) {
-        List<CoordinatesDto> listOfCoordinates = new ArrayList<>();
-
-        for (ScanDto scanDto : requestDto.scan()) {
-            listOfCoordinates.add(scanDto.coordinates());
+        if (requestDto.protocols().contains("closest-enemies")) {
+            listOfCoordinates.sort(Comparator.comparingInt(RadarService::distance));
         }
-        listOfCoordinates.sort(Comparator.comparingInt(RadarService::distance).reversed());
 
+        if (requestDto.protocols().contains("furthest-enemies")) {
+            listOfCoordinates.sort(Comparator.comparingInt(RadarService::distance).reversed());
+        }
+
+        if (requestDto.protocols().contains("assist-allies")) {
+            return DEFAULT_COORDINATES;
+        }
         return listOfCoordinates.get(0);
     }
 
