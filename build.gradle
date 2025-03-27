@@ -1,0 +1,319 @@
+plugins {
+    id('idea')
+    id('java')
+    id('jacoco')
+    id("com.adarshr.test-logger") version "4.0.0"
+    id 'org.springframework.boot' version '3.3.4'
+    id 'io.spring.dependency-management' version '1.1.6'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+sourceSets {
+
+    unit {
+
+        java {
+            srcDirs(file("src/test/unit/java"))
+        }
+
+        resources {
+            srcDirs(file("src/test/unit/resources"))
+        }
+
+        compileClasspath += main.output
+        runtimeClasspath += main.output
+
+    }
+
+    integration {
+
+        java {
+            srcDirs(file("src/test/integration/java"))
+        }
+
+        resources {
+            srcDirs(file("src/test/integration/resources"))
+        }
+
+        compileClasspath += main.output
+        runtimeClasspath += main.output
+
+    }
+
+    acceptance {
+
+        java {
+            srcDirs(file("src/test/acceptance/java"))
+        }
+
+        resources {
+            srcDirs(file("src/test/acceptance/resources"))
+        }
+
+        compileClasspath += main.output
+        runtimeClasspath += main.output
+
+    }
+
+    test {
+        java {
+            srcDirs()
+        }
+    }
+
+}
+
+configurations {
+
+    unitImplementation {
+        extendsFrom(testImplementation)
+    }
+
+    unitRuntimeOnly {
+        extendsFrom(testRuntimeOnly)
+    }
+
+    integrationImplementation {
+        extendsFrom(testImplementation)
+    }
+
+    integrationRuntimeOnly {
+        extendsFrom(testRuntimeOnly)
+    }
+
+    acceptanceImplementation {
+        extendsFrom(testImplementation)
+    }
+
+    acceptanceRuntimeOnly {
+        extendsFrom(testRuntimeOnly)
+    }
+
+}
+
+idea {
+    module {
+        testSources.from(
+                sourceSets.unit.java.srcDirs,
+                sourceSets.integration.java.srcDirs,
+                sourceSets.acceptance.java.srcDirs
+        )
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencyManagement {
+    imports {
+        mavenBom('io.cucumber:cucumber-bom:7.20.1')
+    }
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+    acceptanceImplementation('io.cucumber:cucumber-java')
+    acceptanceImplementation('io.cucumber:cucumber-spring')
+    acceptanceImplementation('io.cucumber:cucumber-junit-platform-engine')
+    acceptanceImplementation('org.junit.platform:junit-platform-suite')
+}
+
+tasks.register("unit", Test)
+tasks.register("integration", Test)
+tasks.register("acceptance", Test)
+tasks.register("junitTestReport", TestReport)
+tasks.register("jacocoUnitTestReport", JacocoReport)
+tasks.register("jacocoIntegrationTestReport", JacocoReport)
+tasks.register("jacocoAcceptanceTestReport", JacocoReport)
+
+unit {
+
+    useJUnitPlatform()
+
+    setTestClassesDirs(sourceSets.unit.output.classesDirs)
+    setClasspath(sourceSets.unit.runtimeClasspath)
+
+    reports {
+        html.outputLocation.set(
+                file("build/reports/junit/unit")
+        )
+    }
+
+    finalizedBy(jacocoUnitTestReport)
+    finalizedBy(jacocoTestReport)
+    finalizedBy(junitTestReport)
+
+}
+
+integration {
+
+    useJUnitPlatform()
+
+    setTestClassesDirs(sourceSets.integration.output.classesDirs)
+    setClasspath(sourceSets.integration.runtimeClasspath)
+
+    reports {
+        html.outputLocation.set(
+                file("build/reports/junit/integration")
+        )
+    }
+
+    finalizedBy(jacocoIntegrationTestReport)
+    finalizedBy(jacocoTestReport)
+    finalizedBy(junitTestReport)
+    shouldRunAfter(unit)
+
+}
+
+acceptance {
+
+    useJUnitPlatform {
+        excludeTags("pending")
+    }
+
+    setTestClassesDirs(sourceSets.acceptance.output.classesDirs)
+    setClasspath(sourceSets.acceptance.runtimeClasspath)
+
+    systemProperty('cucumber.plugin', 'pretty, html:build/reports/cucumber/report.html')
+    systemProperty('cucumber.publish.quiet', 'true')
+
+    reports {
+        html.outputLocation.set(
+                file("build/reports/junit/acceptance")
+        )
+    }
+
+    testLogging {
+        events("STANDARD_OUT")
+    }
+
+    testlogger {
+        showExceptions(false)
+        showPassed(false)
+        showSkipped(false)
+        showFailed(false)
+        showSummary(false)
+    }
+
+    finalizedBy(jacocoAcceptanceTestReport)
+    finalizedBy(jacocoTestReport)
+    finalizedBy(junitTestReport)
+    shouldRunAfter(integration)
+
+}
+
+test {
+    dependsOn(unit, integration, acceptance)
+}
+
+jacocoUnitTestReport {
+
+    executionData(unit)
+    sourceSets(sourceSets.main)
+
+    reports {
+        html.required.set(true)
+        html.outputLocation.set(
+                file("build/reports/jacoco/unit/html")
+        )
+
+        xml.required.set(true)
+        xml.outputLocation.set(
+                file("build/reports/jacoco/unit/report.xml")
+        )
+    }
+
+}
+
+jacocoIntegrationTestReport {
+
+    executionData(integration)
+    sourceSets(sourceSets.main)
+
+    reports {
+        html.required.set(true)
+        html.outputLocation.set(
+                file("build/reports/jacoco/integration/html")
+        )
+
+        xml.required.set(true)
+        xml.outputLocation.set(
+                file("build/reports/jacoco/integration/report.xml")
+        )
+    }
+
+}
+
+jacocoAcceptanceTestReport {
+
+    executionData(acceptance)
+    sourceSets(sourceSets.main)
+
+    reports {
+        html.required.set(true)
+        html.outputLocation.set(
+                file("build/reports/jacoco/acceptance/html")
+        )
+
+        xml.required.set(true)
+        xml.outputLocation.set(
+                file("build/reports/jacoco/acceptance/report.xml")
+        )
+    }
+
+}
+
+jacocoTestReport {
+
+    executionData(unit, integration, acceptance)
+
+    reports {
+        html.required.set(true)
+        html.outputLocation.set(
+                file("build/reports/jacoco/test/html")
+        )
+
+        xml.required.set(true)
+        xml.outputLocation.set(
+                file("build/reports/jacoco/test/report.xml")
+        )
+    }
+
+}
+
+junitTestReport {
+
+    destinationDirectory.set(
+            file("build/reports/junit/test")
+    )
+
+    testResults.from(
+            file("build/test-results/unit/binary"),
+            file("build/test-results/integration/binary"),
+            file("build/test-results/acceptance/binary")
+    )
+
+    shouldRunAfter(unit, integration, acceptance)
+
+}
+
+testlogger {
+    setTheme("mocha")
+}
+
+bootJar {
+    archiveFileName = 'fintonic-base.jar'
+}
+
+group = 'com.fintonic'
+version = '0.0.0'
+description = 'Fintonic Base'

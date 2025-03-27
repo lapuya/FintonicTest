@@ -1,0 +1,19 @@
+services:
+
+  fintonic-base:
+    container_name: fintonic-base
+    image: gradle:8.10.2-jdk21
+    working_dir: /home/gradle/project
+    user: gradle
+    volumes:
+      - type: bind
+        source: .
+        target: /home/gradle/project
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      CODEARTIFACT_AUTH_TOKEN:
+    command: [ "sleep", "infinity" ]
+
+networks:
+  default:
+    name: default-network
