@@ -2,33 +2,29 @@ package com.fintonic.fintonicbase;
 
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class RadarService {
-    private final static CoordinatesDto DEFAULT_COORDINATES = new CoordinatesDto(0, 0);
-
     public CoordinatesDto processRequest(RequestDto requestDto) {
-        List<CoordinatesDto> listOfCoordinates = new ArrayList<>();
-
-        for (ScanDto scanDto : requestDto.scan()) {
-            listOfCoordinates.add(scanDto.coordinates());
-        }
+        List<ScanDto> listOfScan = requestDto.scan();
 
         if (requestDto.protocols().contains("closest-enemies")) {
-            listOfCoordinates.sort(Comparator.comparingInt(RadarService::distance));
+            listOfScan.sort(Comparator.comparingInt(p -> distance(p.coordinates())));
         }
 
         if (requestDto.protocols().contains("furthest-enemies")) {
-            listOfCoordinates.sort(Comparator.comparingInt(RadarService::distance).reversed());
+            listOfScan.sort(Comparator.comparingInt((ScanDto p) -> distance(p.coordinates())).reversed());
         }
 
         if (requestDto.protocols().contains("assist-allies")) {
-            return DEFAULT_COORDINATES;
+            //can be null or number, if provided, can be 0
+            listOfScan.removeIf(p -> Objects.isNull(p.allies()) || p.allies().number() == 0);
         }
-        return listOfCoordinates.get(0);
+
+        return listOfScan.get(0).coordinates();
     }
 
     private static int distance(CoordinatesDto coordinates) {

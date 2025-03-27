@@ -178,6 +178,6 @@ public class RadarServiceTest {
         RequestDto requestDto = new RequestDto(protocols, scan);
 
         var coordinatesDto = radarService.processRequest(requestDto);
-        assertEquals(scanDto3.coordinates(), coordinatesDto);
+        assertEquals(scanDto2.coordinates(), coordinatesDto);
     }
 }
